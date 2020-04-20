@@ -42,7 +42,8 @@ func main() {
 			AppClientID:   os.Getenv("COGNITO_APPCLIENT_ID"),
 		}
 
-		client.RegisterUser(user)
+		response := client.RegisterUser(user)
+		fmt.Println(response)
 	}
 
 }

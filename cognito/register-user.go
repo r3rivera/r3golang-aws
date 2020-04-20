@@ -9,8 +9,7 @@ import (
 
 //RegisterUser function to signup a user of type UserCredential without verifying the password.
 //This will have a status of FORCE_CHANGE_PASSWORD
-func (c *UserCognitoClient) RegisterUser(user UserCredential) {
-	fmt.Println("Creating new user ::", user)
+func (c *UserCognitoClient) RegisterUser(user UserCredential) UserAuthToken {
 
 	rqst := &cognito.AdminCreateUserInput{
 		MessageAction:     aws.String(cognito.MessageActionTypeSuppress),
@@ -51,23 +50,22 @@ func (c *UserCognitoClient) RegisterUser(user UserCredential) {
 
 	//UUID of the created usr
 	if output.User.Username != nil {
-		fmt.Println("Admin initiate password")
-
-		m := make(map[string]*string)
-		m["USERNAME"] = &user.Email
-		m["PASSWORD"] = &user.Password
-
-		c.adminInitiate(m)
+		return c.adminInitiate(&user.Email, &user.Password)
 	}
-
+	return UserAuthToken{}
 }
 
-func (c *UserCognitoClient) adminInitiate(user map[string]*string) {
+func (c *UserCognitoClient) adminInitiate(user, password *string) UserAuthToken {
+
+	m := make(map[string]*string)
+	m["USERNAME"] = user
+	m["PASSWORD"] = password
+
 	rqst := &cognito.AdminInitiateAuthInput{
 		ClientId:       &c.AppClientID,
 		UserPoolId:     &c.UserPoolID,
 		AuthFlow:       aws.String(cognito.AuthFlowTypeAdminNoSrpAuth),
-		AuthParameters: user,
+		AuthParameters: m,
 	}
 	processor, output := c.CognitoClient.AdminInitiateAuthRequest(rqst)
 	err := processor.Send()
@@ -81,9 +79,39 @@ func (c *UserCognitoClient) adminInitiate(user map[string]*string) {
 
 		challenge := *output.ChallengeName
 		if challenge == "NEW_PASSWORD_REQUIRED" && output.Session != nil {
-			fmt.Println("Validating using challenge name ")
-
+			return c.adminRespondToChallenge(user, password, output.Session)
 		}
 	}
+	return UserAuthToken{}
+}
 
+func (c *UserCognitoClient) adminRespondToChallenge(user, password, session *string) UserAuthToken {
+	m := make(map[string]*string)
+	m["USERNAME"] = user
+	m["NEW_PASSWORD"] = password
+
+	rqst := &cognito.AdminRespondToAuthChallengeInput{
+		ClientId:           &c.AppClientID,
+		UserPoolId:         &c.UserPoolID,
+		ChallengeName:      aws.String(cognito.ChallengeNameTypeNewPasswordRequired),
+		Session:            session,
+		ChallengeResponses: m,
+	}
+
+	processor, output := c.CognitoClient.AdminRespondToAuthChallengeRequest(rqst)
+	err := processor.Send()
+
+	if err != nil {
+		fmt.Println("Error with responding to admin initiate user! ", err)
+		panic(err)
+	}
+
+	if output != nil {
+		return UserAuthToken{
+			AccessToken:  *output.AuthenticationResult.AccessToken,
+			RefreshToken: *output.AuthenticationResult.RefreshToken,
+			Expiration:   *output.AuthenticationResult.ExpiresIn,
+		}
+	}
+	return UserAuthToken{}
 }

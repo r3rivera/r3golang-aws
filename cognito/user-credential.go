@@ -19,3 +19,10 @@ type UserCognitoClient struct {
 	UserPoolID    string
 	AppClientID   string
 }
+
+//UserAuthToken provides the response of an authenticated user
+type UserAuthToken struct {
+	AccessToken  string
+	RefreshToken string
+	Expiration   int64
+}
