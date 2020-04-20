@@ -12,7 +12,7 @@ import (
 
 func awsSession() *session.Session {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("us-west-2")},
+		Region: aws.String("us-east-2")},
 	)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 
 		fmt.Println("Creating a new user")
 		user := cognito.UserCredential{
-			Email:       "rr",
+			Email:       "",
 			Password:    "passwordM3!",
 			FirstName:   "Gopher",
 			LastName:    "Tester",
@@ -41,6 +41,7 @@ func main() {
 			UserPoolID:    os.Getenv("COGNITO_USERPOOL_ID"),
 			AppClientID:   os.Getenv("COGNITO_APPCLIENT_ID"),
 		}
+
 		client.RegisterUser(user)
 	}
 
