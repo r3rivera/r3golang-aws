@@ -9,7 +9,7 @@ import (
 
 //LoginUser Authenticate the user
 func (c *UserCognitoClient) LoginUser(username, password *string) UserAuthToken {
-	fmt.Println("Authenticating user :: ", username)
+	fmt.Println("Authenticating user :: ", &username)
 
 	m := make(map[string]*string)
 	m["USERNAME"] = username
