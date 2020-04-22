@@ -3,6 +3,7 @@ package cognito
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 )
 
@@ -29,19 +30,63 @@ func (c *UserCognitoClient) ChangePassword(accessToken, oldPassword, newPassword
 func (c *UserCognitoClient) ForgotPassword(username *string) bool {
 	fmt.Println("Forgot password flow")
 
-	rqst := &cognito.ForgotPasswordInput{
-		ClientId: &c.AppClientID,
-		Username: username,
+	if c.IsEmailVerified(username) {
+		fmt.Println("Email is verified! Sending forgot password!")
+		rqst := &cognito.ForgotPasswordInput{
+			ClientId: &c.AppClientID,
+			Username: username,
+		}
+
+		processor, output := c.CognitoClient.ForgotPasswordRequest(rqst)
+		err := processor.Send()
+
+		if err != nil {
+			fmt.Println("Error with the forgot password flow")
+			panic(err)
+		}
+		return output != nil
+
 	}
 
-	processor, output := c.CognitoClient.ForgotPasswordRequest(rqst)
-	err := processor.Send()
+	fmt.Println("Email is not verified yet!")
+	//Workaround is to force the email_verified attribute as true since we cannot send the verification code
+	//as part of the password reset
+
+	att := cognito.AttributeType{
+		Name:  aws.String("email_verified"),
+		Value: aws.String("true"),
+	}
+
+	var attrArr = make([]*cognito.AttributeType, 1)
+	attrArr[0] = &att
+
+	rqst := &cognito.AdminUpdateUserAttributesInput{
+		UserPoolId:     &c.UserPoolID,
+		UserAttributes: attrArr,
+		Username:       username,
+	}
+
+	attrProc, _ := c.CognitoClient.AdminUpdateUserAttributesRequest(rqst)
+	err := attrProc.Send()
 
 	if err != nil {
-		fmt.Println("Error with the forgot password flow")
+		fmt.Println("Error updating the email verified attribute")
 		panic(err)
 	}
-	return output != nil
+
+	resetRqst := &cognito.AdminResetUserPasswordInput{
+		UserPoolId: &c.UserPoolID,
+		Username:   username,
+	}
+
+	proc, _ := c.CognitoClient.AdminResetUserPasswordRequest(resetRqst)
+	err = proc.Send()
+	if err != nil {
+		fmt.Println("Error reset the password!")
+		panic(err)
+	}
+
+	return true
 }
 
 //ConfirmForgotPassword confirms the forgotten password initiated by the user
