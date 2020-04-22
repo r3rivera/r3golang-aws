@@ -20,12 +20,13 @@ func awsSession() *session.Session {
 		panic(err)
 	}
 
+	os.Setenv("COGNITO_USERPOOL_ID", "")
+	os.Setenv("COGNITO_APPCLIENT_ID", "")
+
 	return sess
 }
 
 func TestRegisterUser(t *testing.T) {
-	os.Setenv("COGNITO_USERPOOL_ID", "")
-	os.Setenv("COGNITO_APPCLIENT_ID", "")
 
 	session := awsSession()
 	if session != nil {
