@@ -1,7 +1,7 @@
 package cognito
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -9,7 +9,7 @@ import (
 
 //ChangePassword Changing user password using old password with a new password
 func (c *UserCognitoClient) ChangePassword(accessToken, oldPassword, newPassword *string) bool {
-	fmt.Println("Changing user password!")
+	log.Println("Changing user password!")
 
 	rqst := &cognito.ChangePasswordInput{
 		AccessToken:      accessToken,
@@ -20,7 +20,7 @@ func (c *UserCognitoClient) ChangePassword(accessToken, oldPassword, newPassword
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error changing password!")
+		log.Panicln("Error changing password!")
 		panic(err)
 	}
 	return output != nil
@@ -28,10 +28,10 @@ func (c *UserCognitoClient) ChangePassword(accessToken, oldPassword, newPassword
 
 //ForgotPassword Used to send a verification code to the user's verified email address.
 func (c *UserCognitoClient) ForgotPassword(username *string) bool {
-	fmt.Println("Forgot password flow")
+	log.Println("Forgot password flow")
 
 	if c.IsEmailVerified(username) {
-		fmt.Println("Email is verified! Sending forgot password!")
+		log.Println("Email is verified! Sending forgot password!")
 		rqst := &cognito.ForgotPasswordInput{
 			ClientId: &c.AppClientID,
 			Username: username,
@@ -41,14 +41,14 @@ func (c *UserCognitoClient) ForgotPassword(username *string) bool {
 		err := processor.Send()
 
 		if err != nil {
-			fmt.Println("Error with the forgot password flow")
+			log.Panicln("Error with the forgot password flow")
 			panic(err)
 		}
 		return output != nil
 
 	}
 
-	fmt.Println("Email is not verified yet!")
+	log.Println("Email is not verified yet!")
 	//Workaround is to force the email_verified attribute as true since we cannot send the verification code
 	//as part of the password reset
 
@@ -70,7 +70,7 @@ func (c *UserCognitoClient) ForgotPassword(username *string) bool {
 	err := attrProc.Send()
 
 	if err != nil {
-		fmt.Println("Error updating the email verified attribute")
+		log.Panicln("Error updating the email verified attribute")
 		panic(err)
 	}
 
@@ -82,7 +82,7 @@ func (c *UserCognitoClient) ForgotPassword(username *string) bool {
 	proc, _ := c.CognitoClient.AdminResetUserPasswordRequest(resetRqst)
 	err = proc.Send()
 	if err != nil {
-		fmt.Println("Error reset the password!")
+		log.Panicln("Error reset the password!")
 		panic(err)
 	}
 
@@ -91,7 +91,7 @@ func (c *UserCognitoClient) ForgotPassword(username *string) bool {
 
 //ConfirmForgotPassword confirms the forgotten password initiated by the user
 func (c *UserCognitoClient) ConfirmForgotPassword(username, password, code *string) bool {
-	fmt.Println("Confirming forgotten password. Code is ", &code)
+	log.Println("Confirming forgotten password. Code is ", &code)
 
 	rqst := &cognito.ConfirmForgotPasswordInput{
 		Username:         username,
@@ -104,7 +104,7 @@ func (c *UserCognitoClient) ConfirmForgotPassword(username, password, code *stri
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error confirming the code")
+		log.Panicln("Error confirming the code")
 		panic(err)
 	}
 	return output != nil

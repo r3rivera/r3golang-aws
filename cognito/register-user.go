@@ -1,7 +1,7 @@
 package cognito
 
 import (
-	"fmt"
+	"log"
 
 	aws "github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -44,7 +44,7 @@ func (c *UserCognitoClient) RegisterUser(user UserCredential) UserAuthToken {
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error sending the request! ", err)
+		log.Panicln("Error sending the request! ", err)
 		panic(err)
 	}
 
@@ -71,7 +71,7 @@ func (c *UserCognitoClient) adminInitiate(user, password *string) UserAuthToken 
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error with admin initiate user! ", err)
+		log.Println("Error with admin initiate user! ", err)
 		panic(err)
 	}
 
@@ -102,7 +102,7 @@ func (c *UserCognitoClient) adminRespondToChallenge(user, password, session *str
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error with responding to admin initiate user! ", err)
+		log.Panicln("Error with responding to admin initiate user! ", err)
 		panic(err)
 	}
 

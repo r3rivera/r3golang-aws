@@ -1,7 +1,7 @@
 package cognito
 
 import (
-	"fmt"
+	"log"
 
 	aws "github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -9,7 +9,7 @@ import (
 
 //GenerateVerficationCodeForEmail generates code for email with the AWS AccessToken receieved during authentication
 func (c *UserCognitoClient) GenerateVerficationCodeForEmail(accessToken *string) bool {
-	fmt.Println("Generating code for verifying email address using accessToken :: ", &accessToken)
+	log.Println("Generating code for verifying email address using accessToken :: ", &accessToken)
 
 	rqst := &cognito.GetUserAttributeVerificationCodeInput{
 		AccessToken:   accessToken,
@@ -20,7 +20,7 @@ func (c *UserCognitoClient) GenerateVerficationCodeForEmail(accessToken *string)
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error generating code for email verification!", err)
+		log.Panicln("Error generating code for email verification!", err)
 		panic(err)
 	}
 	return output != nil
@@ -28,7 +28,7 @@ func (c *UserCognitoClient) GenerateVerficationCodeForEmail(accessToken *string)
 
 //VerifyEmailByCode verfies the email address using the accessToken
 func (c *UserCognitoClient) VerifyEmailByCode(accessToken, code *string) bool {
-	fmt.Println("Verifying email address using accessToken and code!")
+	log.Println("Verifying email address using accessToken and code!")
 
 	rqst := &cognito.VerifyUserAttributeInput{
 		AccessToken:   accessToken,
@@ -40,7 +40,7 @@ func (c *UserCognitoClient) VerifyEmailByCode(accessToken, code *string) bool {
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error verifying email using code!", err)
+		log.Panicln("Error verifying email using code!", err)
 		panic(err)
 	}
 	return output != nil

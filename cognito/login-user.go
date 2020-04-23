@@ -1,7 +1,7 @@
 package cognito
 
 import (
-	"fmt"
+	"log"
 
 	aws "github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -9,7 +9,7 @@ import (
 
 //LoginUser Authenticate the user
 func (c *UserCognitoClient) LoginUser(username, password *string) UserAuthToken {
-	fmt.Println("Authenticating user :: ", &username)
+	log.Println("Authenticating user :: ", &username)
 
 	m := make(map[string]*string)
 	m["USERNAME"] = username
@@ -26,7 +26,7 @@ func (c *UserCognitoClient) LoginUser(username, password *string) UserAuthToken 
 	err := processor.Send()
 
 	if err != nil {
-		fmt.Println("Error authenticating the user! ", err)
+		log.Panicln("Error authenticating the user! ", err)
 		panic(err)
 	}
 

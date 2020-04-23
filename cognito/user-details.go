@@ -1,7 +1,7 @@
 package cognito
 
 import (
-	"fmt"
+	"log"
 
 	aws "github.com/aws/aws-sdk-go/aws"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
@@ -9,7 +9,7 @@ import (
 
 //IsEmailVerified Validate is the user's email is verified or not
 func (c UserCognitoClient) IsEmailVerified(username *string) bool {
-	fmt.Println("Getting user details! ")
+	log.Println("Getting user details! ")
 
 	dtl := &cognito.AdminGetUserInput{
 		UserPoolId: &c.UserPoolID,
@@ -20,7 +20,7 @@ func (c UserCognitoClient) IsEmailVerified(username *string) bool {
 	dtlErr := userProc.Send()
 
 	if dtlErr != nil {
-		fmt.Println("Error getting user details!, ", dtlErr)
+		log.Panicln("Error getting user details!, ", dtlErr)
 		panic(dtlErr)
 	}
 
